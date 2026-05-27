@@ -186,6 +186,13 @@ def handle_pairing_thread_safe(donor, recipient, round_index, generation,
                             if m:
                                 action = "donate"
                                 response = float(m.group(1))
+                                # Paper-faithful clamp (see donor_game/llm.py
+                                # request_donation): Qwen 7B frequently responds
+                                # with an amount > donor.resources. Without this,
+                                # the log records the LLM's stated value while
+                                # the game state silently rejects the action,
+                                # producing donation_pct > 1.0.
+                                response = max(0.0, min(response, donor.resources))
                                 valid_response = True
                     elif pm == "costly_punishment":
                         m = re.search(r"(donate|punish).*?(\d+(?:[.,]\d+)?)",
@@ -193,12 +200,20 @@ def handle_pairing_thread_safe(donor, recipient, round_index, generation,
                         if m:
                             action = m.group(1).lower()
                             response = float(m.group(2).replace(",", "."))
+                            response = max(0.0, min(response, donor.resources))
                             valid_response = True
                     else:  # punishment_mechanism == 'none'
                         m = re.search(r"^\s*(\d+(?:\.\d+)?)", answer_part)
                         if m:
                             action = "donate"
                             response = float(m.group(1))
+                            # Paper-faithful clamp (see donor_game/llm.py
+                            # request_donation): Qwen 7B frequently responds
+                            # with an amount > donor.resources. Without this,
+                            # the log records the LLM's stated value while
+                            # the game state silently rejects the action,
+                            # producing donation_pct > 1.0.
+                            response = max(0.0, min(response, donor.resources))
                             valid_response = True
 
                 if not valid_response:
