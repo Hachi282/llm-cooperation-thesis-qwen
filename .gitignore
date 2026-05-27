@@ -1,0 +1,22 @@
+# Secrets — NEVER commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Experiment outputs (large, regenerable)
+logs/
+figures/*
+# … but track the thesis/ subfolder where thesis deliverables live
+!figures/thesis/
+!figures/thesis/**
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
