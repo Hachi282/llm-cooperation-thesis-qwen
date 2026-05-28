@@ -24,6 +24,14 @@ selection_method: str = "top"
 reputation_mechanism: str = "three_last_traces"
 punishment_mechanism: str = "none"
 
+# Inherited-strategy transmission format (D032 ablation).
+#   "list"   = paper-verbatim: pass raw list of strategy strings, embedded as
+#              Python list repr ['...', '...'] — no names, no scores (default).
+#   "scored" = bullet list with survivor name + final score + strategy, mirroring
+#              donor_game/ (Qwen v1). Tests whether score-visible inheritance
+#              changes attractor structure. Does NOT touch any other code path.
+inherit_format: str = "list"
+
 # LLM backend (set at startup).
 llm: str = ""           # e.g. "qwen2.5:7b-instruct"
 client = None           # Unused for Ollama (kept for API parity with openai sibling)

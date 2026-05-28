@@ -84,9 +84,25 @@ def build_system_prompt(initial_endowment: float, cooperationGain: float,
                 After the game has finished, the best-performing half of agents will survive to the next generation, and continue playing. """
 
 
+def format_inherited_scored(survivors) -> str:
+    """D032 ablation: render survivors as a bullet list with name + final score
+    + strategy, mirroring donor_game/llm.py (Qwen v1) format_inherited_strategies.
+
+    The paper prompt text promises "the advice ... along with their final scores"
+    but the paper code only passes a raw list of strategy strings (no scores).
+    This format delivers the promised scores. Used only when
+    config.inherit_format == "scored".
+    """
+    lines = []
+    for s in survivors:
+        lines.append(f"\n- {s.name} (final score {s.total_final_score:.1f}): {s.strategy}")
+    return "".join(lines)
+
+
 def runGenerations(numGenerations, numAgents, initialEndowment, selectionMethod,
                    simulation_data: SimulationData) -> dict:
-    """Paper cell 20, verbatim logic. Identical to donor_game_openai/main.py."""
+    """Paper cell 20, verbatim logic. Identical to donor_game_openai/main.py
+    except for the D032 inherit_format branch when building surviving_strategies."""
     all_donations = []
     all_average_final_resources = []
     prev_gen_strategies = []
@@ -121,7 +137,13 @@ def runGenerations(numGenerations, numAgents, initialEndowment, selectionMethod,
                 raise ValueError("Invalid selection method.")
 
             if numGenerations > 1:
-                surviving_strategies = [agent.strategy for agent in surviving_agents]
+                # D032 ablation: only the inherited-strategy transmission format
+                # changes here. "list" = paper-verbatim (raw list -> repr);
+                # "scored" = bullet list with name + final score + strategy.
+                if config.inherit_format == "scored":
+                    surviving_strategies = format_inherited_scored(surviving_agents)
+                else:
+                    surviving_strategies = [agent.strategy for agent in surviving_agents]
                 for agent in surviving_agents:
                     agent.resources = initialEndowment
                     agent.old_traces = agent.traces
@@ -150,6 +172,10 @@ def main():
     parser.add_argument("--num-agents", type=int, default=12)
     parser.add_argument("--smoke", action="store_true",
                         help="Smoke mode: 2 generations, 4 agents (~3 min)")
+    parser.add_argument("--inherit-format", choices=["list", "scored"], default="list",
+                        help="Inherited-strategy format (D032 ablation). "
+                             "'list' = paper-verbatim list repr (default, baseline). "
+                             "'scored' = bullet list with survivor name + final score.")
     args = parser.parse_args()
 
     if args.smoke:
@@ -169,6 +195,7 @@ def main():
     config.selection_method = "top"
     config.reputation_mechanism = "three_last_traces"
     config.punishment_mechanism = "none"
+    config.inherit_format = args.inherit_format
     config.system_prompt = build_system_prompt(
         config.initial_endowment, config.cooperationGain,
         config.punishment_mechanism, config.punishmentLoss,
@@ -185,6 +212,7 @@ def main():
     print(f"Model: {config.llm}  (Ollama backend, temperature=0.8 paper-matched)")
     print(f"Seed: {args.seed}")
     print(f"Generations: {args.num_generations}, Agents: {args.num_agents}")
+    print(f"Inherit format: {config.inherit_format}")
     print()
 
     log_event(
@@ -192,6 +220,7 @@ def main():
         model=config.llm,
         backend="ollama",
         temperature=0.8,
+        inherit_format=config.inherit_format,
         seed=args.seed,
         tag=args.tag,
         num_generations=args.num_generations,
