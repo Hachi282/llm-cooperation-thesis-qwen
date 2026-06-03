@@ -24,30 +24,32 @@ This repo is one of three sibling repos:
 
 ---
 
-## Why this repo exists
+## 為什麼有這個 repo（與目前論文狀態）
 
-The parent repo (`donor_game/`) is "Qwen v1" — the user's own framework with
-six paper-faithfulness patches applied (see A002 in parent's `notes/experiments.md`).
-Behaviour is paper-faithful but the **code path** is not a verbatim notebook
-port: `game.py` is 295 lines, `evolution.py` is 110, there's a separate
-`trace.py`, and a `mechanism_classifier.py` that the paper doesn't have.
+Parent repo（`donor_game/`）是「Qwen v1」—— user 自己寫的 framework、應用了 6 個
+paper-faithfulness patches（見 parent repo `notes/experiments.md` 的 A002）。
+**行為層**對齊 paper、但 **code path** 不是 verbatim notebook port：`game.py`
+有 295 行、`evolution.py` 110 行、有獨立的 `trace.py`、還有一個 paper 沒有的
+`mechanism_classifier.py`。
 
-For **D031** (5/28) we wanted to test whether the "Qwen multimodality" finding
-in E004 was a property of the framework, the model, or both. The only honest
-test is a cross-model comparison with **identical code path** — so we ported
-the `donor_game_openai/` modules verbatim and swapped `llm_openai.py` for
-`llm_qwen.py` (Ollama backend, same `promptLLM` signature).
+**D031**（5/28）想驗證：E004 看到的「Qwen 多峰」是 framework artifact、是 model
+特性、還是兩者交互？唯一誠實的測試方式是 **code path 完全一致** 的 cross-model
+對比 —— 所以把 `donor_game_openai/` 整套 module 字字 verbatim 搬過來、只把
+`llm_openai.py` 換成 `llm_qwen.py`（Ollama backend、同樣的 `promptLLM` 介面）。
 
-D031 found: clean Qwen v2 is **single-attractor**. Five seeds, per-gen
-r = 0.073 ± 0.033, no outlier. That overturned the "multi-attractor across
-Qwen + gpt-5" provisional headline from the 5/22 advisor meeting.
+**D031 結果**：乾淨的 Qwen v2 是**單峰**。5 seed、per-gen r = 0.073 ± 0.033、
+無 outlier。**5/22 教授 meeting 上的「multi-attractor 跨 Qwen + gpt-5」headline
+被推翻。**
 
-**D032** (5/28-29) then used this repo to run the pre-registered
-scored-inheritance ablation: take the same code, change *only* the
-inherited-strategy format from list-repr to `\n- {name} (final score {score}): {strategy}`
-bullets (`--inherit-format scored`), keep everything else identical. Five
-seeds. Five pre-registered decision-rule criteria. Result: all five fail.
-Multi-attractor did not return. Capability-gated interpretation supported.
+**D032**（5/28–29）接著用這個 repo 跑 pre-registered 的 scored-inheritance
+ablation：同樣的 code、**只改 inherited-strategy 格式一個變數**（list repr →
+`\n- {name} (final score {score}): {strategy}` bullet、`--inherit-format scored`），
+其他完全相同。5 seed、5 條 pre-registered decision-rule criteria。**結果：5 條
+全 fail。** 多峰沒回來、**capability-gated interpretation 強烈支持**（strongly
+supports，未證明；Claude 3.5 Sonnet 是計畫中的 out-of-sample test）。
+
+論文現在的 working main claim、完整 hypothesis 鏈、caveats 全部見 parent repo
+`donor_game/notes/thesis_spine.md`。
 
 ---
 
@@ -168,67 +170,60 @@ Aggregates:
 
 ---
 
-## Weekly progress log
+## 每週進度（Weekly progress log）
 
-Quick-scan timeline of work in this repo. Full reasoning in parent repo's
-[`notes/lab_notebook.md`](https://github.com/Hachi282/llm-cooperation-thesis/blob/main/notes/lab_notebook.md).
-Current week is **bold**.
+這個 repo 每週做了什麼的快速時間線。完整推理請看 parent repo 的
+[`notes/lab_notebook.md`](https://github.com/Hachi282/llm-cooperation-thesis/blob/main/notes/lab_notebook.md)。
+**粗體**為本週。
 
-### 2026-05-28 — Repo created, baseline run, clamp bug discovered
+### 2026-05-28 — Repo 建立、baseline 跑完、抓到 clamp bug
 
-- 5/28 morning: **D028** decision to open this repo. Verbatim port from
-  `donor_game_openai/`; only `llm_openai.py` replaced with `llm_qwen.py`;
-  smoke test passes
-- First 5-seed baseline run launched (~4-5 hr sequential)
-- Analysis revealed **`donation_pct > 1.0` events** — 15.6% of seed 7. Traced
-  to the paper-inherited silent logging bug (V&H's notebook doesn't clamp
-  LLM responses to `donor.resources`); capable OpenAI models never tripped
-  it, Qwen 7B does
-- **D029** patch applied: `response = max(0.0, min(response, donor.resources))`
-  added in both `donor_game_openai/donation.py` (commit `08620b9`) and this
-  repo's `donation.py` (local commit `ebc9adc`)
-- 5-seed baseline re-run with the clamp fix. All clean (`donation_pct` max
-  = 1.000, zero `>1.0` events)
-- **D031** decided: clean Qwen v2 is **single-attractor**. 5 seeds, per-gen
-  r = 0.073 ± 0.033, no outlier. Overturns the 5/22 cross-model
-  multi-attractor headline.
-- **D032** pre-registered: scored-inheritance ablation. Five decision-rule
-  criteria committed in advance to prevent post-hoc eyeballing.
-- Implemented `--inherit-format {list, scored}` flag (local commit `d1e557d`).
-  Smoke-tested both modes (`list` produces `['...']` repr, `scored`
-  produces `- 1_3 (final score 108.0): ...` bullets — both with
-  clamp intact)
-- D032 5-seed run launched
+- 5/28 早上：**D028 決定**開這個 repo。verbatim port 從 `donor_game_openai/`、
+  只換 `llm_openai.py → llm_qwen.py`、smoke test 通過
+- 第一次 5-seed baseline run 啟動（~4-5 hr 序列跑、Ollama 內部會序列化）
+- 分析時發現 **`donation_pct > 1.0` 的事件** —— seed 7 上 15.6% events 中招。追到
+  paper 自己的 silent logging bug（V&H notebook 沒把 LLM 回答 clamp 到
+  `donor.resources`）；capable OpenAI model 都不會踩、Qwen 7B 會
+- **D029 patch**：加 `response = max(0.0, min(response, donor.resources))` 到
+  `donor_game_openai/donation.py`（commit `08620b9`）跟本 repo 的
+  `donation.py`（local commit `ebc9adc`）
+- 帶 clamp fix 重跑 5-seed baseline。全乾淨（`donation_pct` max = 1.000、0 個
+  >1.0 事件）
+- **D031 結論**：乾淨的 Qwen v2 是**單峰**。5 seed、per-gen r = 0.073 ± 0.033、
+  無 outlier。**5/22 跨模型 multi-attractor headline 被推翻**
+- **D032 pre-register**：scored-inheritance ablation。5 條 decision-rule
+  criteria 跑前就釘住、防事後肉眼判讀
+- 實作 `--inherit-format {list, scored}` flag（local commit `d1e557d`）。兩個
+  mode 都 smoke 過（`list` 產生 `['...']` repr、`scored` 產生
+  `- 1_3 (final score 108.0): ...` bullet、clamp 都生效）
+- D032 5-seed run 啟動
 
-### 2026-05-29 — D032 result
+### 2026-05-29 — D032 結果出爐
 
-- D032 5-seed scored run finished. Analysis: per-gen r = 0.043 ± 0.023,
-  range 0.060. All 5 pre-registered decision-rule criteria fail. Donation
-  rose 44%→50% but reciprocity dropped from 0.073 to 0.043
-- **D033**: capability-gated interpretation strongly supported; transmission-
-  information confound ruled out. Side observation: performance signal
-  (visible scores) makes Qwen *more generous* but *less reciprocal* —
-  reinforces the original rhetoric-behaviour gap from the parent repo's
-  Pilot A/C
+- D032 scored 5-seed 跑完。分析結果：per-gen r = 0.043 ± 0.023、range 0.060。
+  **5 條 pre-registered decision-rule criteria 全 fail**。donation 從 44% 升到
+  50%、但 reciprocity 從 0.073 跌到 0.043
+- **D033 結論**：capability-gated interpretation **strongly supported**；
+  transmission-information confound 被排除。次發現：performance signal
+  （可見 score）讓 Qwen **更慷慨但更不互惠** —— 印證 parent repo Pilot A/C 的
+  rhetoric-behaviour gap
 
-### 2026-05-30 (current) — Thesis figures use this repo's data
+### 2026-05-30（本週）— 論文圖用了這個 repo 的資料
 
-- Master cross-model table built using `donor_game/compute_canonical_metrics.py`
-  reading this repo's `qwen_v2_*` and `qwen_v2_scored_*` logs
-- 4 thesis figures generated by `donor_game/make_d033_figures.py` — three of
-  them (F1 regime overview, F2 per-gen r, F3 D032 ablation, F4 attractor map)
-  rely on this repo's data
-- Decision **D035**: the 5/22 → 5/30 narrative shift (cross-model
-  multi-attractor → capability-gated) is written into the thesis as a
-  Turpin-grade critique-and-replace methodology *feature*, not a retrofit
+- Master cross-model 表用 `donor_game/compute_canonical_metrics.py` 重算、讀本
+  repo 的 `qwen_v2_*` 跟 `qwen_v2_scored_*` log
+- 4 張核心論文圖由 `donor_game/make_d033_figures.py` 產出 ——
+  其中 F1 regime overview、F2 per-gen r、F3 D032 ablation、F4 attractor map
+  都用到本 repo 的資料
+- **D035 決定**：5/22 → 5/30 的 narrative shift（cross-model multi-attractor
+  → capability-gated）寫進論文時 **framed as a feature, not retrofit** ——
+  展現 Turpin-grade critique-and-replace methodology
 
-### Coming up
+### 接下來
 
-- Possibly a Claude port (`donor_game_claude/`) using this same template — same
-  modular structure, swap the LLM client. Pending advisor approval of the
-  Claude run plan
-- Optional: seeds 6–10 robustness check on `qwen_v2_*` to head off any
-  "n=5 not enough" challenge
+- 可能會開 `donor_game_claude/`（用同套 template、只換 LLM client）跑 Claude
+  作為 capability-gated 的 out-of-sample test。等教授同意 + run plan 寫完
+- 可選：補 `qwen_v2_*` seed 6–10 robustness check、預先回應「n=5 不夠」的質疑
 
 ---
 
