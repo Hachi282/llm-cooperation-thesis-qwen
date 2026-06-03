@@ -14,13 +14,7 @@ This repo is one of three sibling repos:
 |---|---|---|---|
 | [`Hachi282/llm-cooperation-thesis`](https://github.com/Hachi282/llm-cooperation-thesis) | Qwen v1 framework — user's own implementation | Ollama + qwen2.5:7b-instruct | Main analysis hub, lab notebook, thesis notes |
 | [`Hachi282/llm-cooperation-thesis-openai`](https://github.com/Hachi282/llm-cooperation-thesis-openai) | Paper-verbatim port + OpenAI ladder | OpenAI API (gpt-4o / gpt-5-mini / gpt-5) | Cross-capability comparison + thesis figures |
-| **`donor_game_qwen/`** (this one, local-only — no GitHub remote yet) | Same verbatim port + Ollama Qwen | Ollama + qwen2.5:7b-instruct | **"Qwen v2" — D032 controlled ablation** |
-
-> ⚠️ **No GitHub remote yet.** This repo is git-tracked locally
-> (`git init` 5/28). To publish: `gh repo create
-> Hachi282/llm-cooperation-thesis-qwen --public --source=. --push`. Pending a
-> separate decision on whether to publish (the main thesis findings already
-> live across the other two public repos).
+| **[`Hachi282/llm-cooperation-thesis-qwen`](https://github.com/Hachi282/llm-cooperation-thesis-qwen)** (this one) | Same verbatim port + Ollama Qwen | Ollama + qwen2.5:7b-instruct | **"Qwen v2" — D032 controlled ablation** |
 
 ---
 
