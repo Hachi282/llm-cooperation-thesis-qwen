@@ -8,8 +8,8 @@ __pycache__/
 .venv/
 venv/
 
-# Experiment outputs (large, regenerable)
-logs/
+# Experiment outputs — now tracked as reproducibility provenance (unified with sibling repos)
+# logs/
 figures/*
 # … but track the thesis/ subfolder where thesis deliverables live
 !figures/thesis/
