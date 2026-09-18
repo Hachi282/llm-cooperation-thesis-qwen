@@ -215,9 +215,9 @@ Aggregates:
 
 ### 接下來
 
-- 可能會開 `donor_game_claude/`（用同套 template、只換 LLM client）跑 Claude
-  作為 capability-gated 的 out-of-sample test。等教授同意 + run plan 寫完
-- 可選：補 `qwen_v2_*` seed 6–10 robustness check、預先回應「n=5 不夠」的質疑
+- **✅ 已完成（D039–D043）**：Claude out-of-sample 測試已跑——但不是新開 `donor_game_claude/`，而是用 `donor_game_openai/` port 經 gateway 跑 `claude-sonnet-5` / `claude-opus-4-8` 各 **n=20**。結果**推翻 capability-gated**，改為 family/model-specific + 兩軸脫鉤(見 parent lab_notebook)。
+- **⚠️ 進行中（D053）**：gemma4 out-of-sample(新 frontier family、教授指示)亦走 `donor_game_openai/` port + vLLM,非本 repo。
+- 可選(仍未做)：補 `qwen_v2_*` seed 6–10 robustness check、預先回應「n=5 不夠」的質疑。
 
 ---
 
