@@ -172,6 +172,9 @@ def main():
     parser.add_argument("--num-agents", type=int, default=12)
     parser.add_argument("--smoke", action="store_true",
                         help="Smoke mode: 2 generations, 4 agents (~3 min)")
+    parser.add_argument("--unit-aware-parse", action="store_true",
+                        help="AAMAS E0 fix: read answers like '50%% of X' as 50%% of resources "
+                             "instead of 50 units (default off = paper parser)")
     parser.add_argument("--inherit-format", choices=["list", "scored"], default="list",
                         help="Inherited-strategy format (D032 ablation). "
                              "'list' = paper-verbatim list repr (default, baseline). "
@@ -196,6 +199,7 @@ def main():
     config.reputation_mechanism = "three_last_traces"
     config.punishment_mechanism = "none"
     config.inherit_format = args.inherit_format
+    config.unit_aware_parse = args.unit_aware_parse
     config.system_prompt = build_system_prompt(
         config.initial_endowment, config.cooperationGain,
         config.punishment_mechanism, config.punishmentLoss,

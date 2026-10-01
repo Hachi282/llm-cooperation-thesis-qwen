@@ -31,6 +31,7 @@ punishment_mechanism: str = "none"
 #              donor_game/ (Qwen v1). Tests whether score-visible inheritance
 #              changes attractor structure. Does NOT touch any other code path.
 inherit_format: str = "list"
+unit_aware_parse: bool = False  # AAMAS E0 fix, opt-in via --unit-aware-parse
 
 # LLM backend (set at startup).
 llm: str = ""           # e.g. "qwen2.5:7b-instruct"

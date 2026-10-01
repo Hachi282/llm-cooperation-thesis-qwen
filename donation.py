@@ -143,6 +143,8 @@ def handle_pairing_thread_safe(donor, recipient, round_index, generation,
     justification = ""
     response = 0
     full_response = ""
+    answer_raw = None
+    parse_mode = None
 
     recipient_behavior = ""
     if donor.traces:
@@ -207,6 +209,16 @@ def handle_pairing_thread_safe(donor, recipient, round_index, generation,
                         if m:
                             action = "donate"
                             response = float(m.group(1))
+                            answer_raw, parse_mode = response, "units"
+                            # AAMAS E0 fix (opt-in, --unit-aware-parse): Qwen 7B
+                            # sometimes answers "50% of 27.375 = 13.6875"; the
+                            # paper parser reads that as 50 UNITS (then clamps).
+                            # When enabled, a number directly followed by '%' is
+                            # read as that percentage of the donor's resources.
+                            if getattr(config, "unit_aware_parse", False) and \
+                                    re.match(r"^\s*\d+(?:\.\d+)?\s*%", answer_part):
+                                response = response / 100.0 * donor.resources
+                                parse_mode = "percent"
                             # Paper-faithful clamp (see donor_game/llm.py
                             # request_donation): Qwen 7B frequently responds
                             # with an amount > donor.resources. Without this,
@@ -420,6 +432,8 @@ def handle_pairing_thread_safe(donor, recipient, round_index, generation,
             donor_reputation_after=donor.reputation if donor.reputation is not False else None,
             justification=justification,
             raw_response=full_response,
+            answer_value_before_clamp=answer_raw,
+            parse_mode=parse_mode,
         )
 
     return action_info, donor_data, recipient_data
