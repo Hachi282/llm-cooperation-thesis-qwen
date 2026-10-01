@@ -47,6 +47,17 @@ supports，未證明；Claude 3.5 Sonnet 是計畫中的 out-of-sample test）�
 
 ---
 
+## AAMAS E0 修正：unit-aware 重跑（2026-10-01）
+
+E0 對帳發現論文原版 parser 會把「Answer: 50% of 27.4 = 13.7」讀成 **50 units**（list 310 筆、scored 171 筆，部分被 clamp 成 100%），
+這會改變遊戲軌跡，依教授規格需重跑。新增 `--unit-aware-parse`（預設關閉、原行為不變）：數字後直接接 `%` 時，讀成自己資源的該百分比。
+log 另記 `answer_value_before_clamp`、`parse_mode`。
+
+- 重跑：`run_rerun_unitaware.sh` → `logs/qwen_v2u_s*.jsonl`（list）、`logs/qwen_v2u_scored_s*.jsonl`（scored），各 5 seeds，**已完成**。
+- 結果（`../donor_game_openai/aamas_rev/out/Qwen_rerun_compare.md`）：list canonical per-gen r 0.073 → **0.027 ± 0.050**、
+  捐贈 44% → **35% ± 11**（2/5 seeds 下滑，不再稱單峰）；scored 0.043 → 0.060。原 `qwen_v2_*` log 保留作對照。
+- AAMAS 只用 list；scored 供碩論 D032 更新。
+
 ## File-by-file relationship to `donor_game_openai/`
 
 | File | Status vs OpenAI sibling |
